@@ -19,7 +19,7 @@ Measure awareness and adoption of 3R3G in the Mekong Delta Region and assess dif
   
   ## metadata 
   # change the major and minor versions if you see a warning
-  meta <- carobiner::get_metadata(uri, path, group, major=1, minor=0,
+  meta <- carobiner::get_metadata(uri, path, group, major=3, minor=1,
                                   # include the data provider and/or all institutes listed as authors (if any)
                                   data_organization = "",
                                   # if there is a paper, include the paper's doi here
