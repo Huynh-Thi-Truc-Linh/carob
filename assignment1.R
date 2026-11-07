@@ -21,35 +21,28 @@ Measure awareness and adoption of 3R3G in the Mekong Delta Region and assess dif
   # change the major and minor versions if you see a warning
   meta <- carobiner::get_metadata(uri, path, group, major=3, minor=1,
                                   # include the data provider and/or all institutes listed as authors (if any)
-                                  data_organization = "",
-                                  # if there is a paper, include the paper's doi here
-                                  # also add a RIS file in references folder (with matching doi)
-                                  publication = "",
+                                  data_organization = "IRRI",
+                                  publication = NA,
                                   project = NA,
-                                  # data_type can be e.g. "on-farm experiment", "survey", "compilation"
-                                  data_type = "experiment",
-                                  # treatment_vars has semi-colon separated variable names that represent the
-                                  # treatments if the data is from an experiment. E.g. "N_fertilizer;P_fertilizer;K_fertilizer"
-                                  treatment_vars = "",
-                                  # response variables of interest such as yield, fwy_residue, disease incidence, etc. Do not include variable that describe management for all treatments or other observations that were not related to the aim of the trial (e.g. the presence of a disease).
-                                  response_vars = "", 
-                                  # The percentage of relevant variables that have been standardized (between 0 and 100%) 
-                                  carob_completion = 0,
-                                  # How many hours did it take to write this script?
-                                  carob_effort = 0,
+                                  data_type = "survey",
+                                  treatment_vars = NA,
+                                  response_vars = NA, 
+                                  carob_completion = 50,
+                                  carob_effort = 1,
                                   carob_contributor = "Huynh Thi Truc Linh",
-                                  # The day the script was first written
-                                  carob_date = "2026-11-03",
-                                  notes = "", # notes for the end-user
-                                  # if available report the experimental or survey design
+                                  carob_date = "2026-11-07",
+                                  notes = NA, # notes for the end-user
                                   design = NA
   )
   
   ## read data 
   
   f <- ff[basename(ff) == "Impact Assessment of Three R and Three G.xls"]
-  r <- read.csv(f)
-  # or  r <- carobiner::read.excel(f)
+  
+  proc <- function(s) {
+    r <- carobiner::read.excel(f, sheet=s, skip=3)
+    r <- r[!is.na(r$ResNo), ]
+    names(r) <- gsub("-", "", names(r))
   
   ## select the variables of interest and assign them to the correct name
   d <- data.frame(
