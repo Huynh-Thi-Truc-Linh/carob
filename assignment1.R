@@ -44,88 +44,85 @@ Measure awareness and adoption of 3R3G in the Mekong Delta Region and assess dif
     r <- r[!is.na(r$ResNo), ]
     names(r) <- gsub("-", "", names(r))
   
-  ## select the variables of interest and assign them to the correct name
-  d <- data.frame(
-    country = r$Country,
+    data.frame(
+      hhid = as.character(r$ResNo),
+      field_id = as.character(r$ParcNo),
+      season = ifelse(s == "DS", "dry", "wet"),
+      province = r$Province,
+      field_size = r$ParcArea,
+      adopt_3R3G_ = r$Adpt3R == 1,
+      adopt_seed_ = r$AdptS == 1,
+      adopt_fertilizer_ = r$AdptF == 1,
+      adopt_pesticide_ = r$AdptP == 1,
+      yield = r$Yield * 1000,
+      crop_price = r$Price / 1000,
+      variety = r$Variety,
+      seed_source = c("certified", "own harvest", "co-farmer", "local seed farm")[r$SdSrc],
+      seed_rate = r$SdRate,
+      seed_price = r$SdPrc / 1000,
+      fertilizer_cost = r$FRTCst,
+      fertilizer_amount = r$FRTGrWt,
+      N_fertilizer = r$KgN,
+      P_fertilizer = r$KgP,
+      K_fertilizer = r$KgK,
+      herbicide_amount = r$HRBAI,
+      herbicide_times = as.integer(r$HRBFrq),
+      insecticide_amount = r$INSAI,
+      insecticide_times = as.integer(r$INSFrq),
+      fungicide_amount = r$FNGAI,
+      fungicide_times = as.integer(r$FNGFrq),
+      irrigation_cost = r$H2OCst
+    )
+  }
     
-    ## make sure that names are normalized (proper capitalization, spelling, no additional white space).
-    ## you can use carobiner::fix_name()
-    ## first use "location", then use "site"
-
-    location = r$Site,
-    elevation = r$Alt,
-    
-    adm1 = carobiner::fix_name(r$Province, "title"),
-    adm2 = carobiner::fix_name(r$District, "title"),
-    
-    ## the treatment code/description (if any)	
-    d$treatment <- r$Treatment
+  d <- rbind(proc("DS"), proc("WS"))
+  d$herbicide_used <- d$herbicide_times > 0
+  d$insecticide_used <- d$insecticide_times > 0
+  d$fungicide_used <- d$fungicide_times > 0
+  d$currency <- "USD"
+  
+  d$adm1 <- c(AG="An Giang", CT="Can Tho", ST="Soc Trang")[d$province] |> as.vector()
+  d$province <- NULL
+  d$planting_date <- ifelse(d$season == "dry" & d$adm1 == "Soc Trang", "2007", "2006")
+  
+  rng <- rbind(
+    c(1001, 1029, "Vinh Binh", "Chau Thanh"), c(1030, 1058, "Vinh Nhuan", "Chau Thanh"), c(1059, 1081, "Vinh Hanh", "Chau Thanh"),
+    c(1082, 1123, "O Long Vi", "Chau Phu"), c(1124, 1152, "Dao Huu Canh", "Chau Phu"), c(1199, 1199, "Dao Huu Canh", "Chau Phu"),
+    c(1153, 1180, "Binh Phu", "Chau Phu"), c(1181, 1188, "Vinh Te", "Chau Doc"), c(1189, 1194, "Vinh Chau", "Chau Doc"),
+    c(1195, 1198, "Chau Phu B", "Chau Doc"),
+    c(2001, 2012, "Trung Nhut", "Thot Not"), c(2013, 2023, "Trung Thanh", "Thot Not"), c(2024, 2034, "Thuan Hung", "Thot Not"),
+    c(2035, 2064, "Thoi Dong", "Co Do"), c(2065, 2090, "Truong Xuan A", "Co Do"), c(2091, 2113, "Dong Hiep", "Co Do"),
+    c(2114, 2146, "Trung Hung", "Vinh Thanh"), c(2147, 2172, "Thanh An", "Vinh Thanh"), c(2173, 2198, "Thanh Thang", "Vinh Thanh"),
+    c(3001, 3012, "Long Hung", "My Tu"), c(3057, 3079, "Long Hung", "My Tu"),
+    c(3013, 3022, "Thuan Hung", "My Tu"), c(3080, 3104, "Thuan Hung", "My Tu"),
+    c(3023, 3032, "My Phuoc", "My Tu"), c(3105, 3129, "My Phuoc", "My Tu"),
+    c(3033, 3043, "Dai Hai", "Ke Sach"), c(3130, 3149, "Dai Hai", "Ke Sach"),
+    c(3044, 3056, "Ke An", "Ke Sach"), c(3150, 3174, "Ke An", "Ke Sach"),
+    c(3175, 3199, "Thanh Thai An", "My Xuyen")
   )
+  id <- as.numeric(d$hhid)
+  j <- sapply(id, function(i) {
+    k <- which(i >= as.numeric(rng[,1]) & i <= as.numeric(rng[,2]))
+    if (length(k) == 1) k else NA
+  })
+  d$location <- rng[j, 3]
+  d$adm2 <- rng[j, 4]
   
-  ## separate individual trials. For example trials in different locations or years. 
-  ## do _not_ separate by treatments within a trial. For a survey, each row gets a unique trial_id
-  d$trial_id <- as.character(as.integer(as.factor( ____ )))
+  r1 <- carobiner::read.excel(f, sheet="CY", skip=3)
+  r1 <- r1[!is.na(r1$ResNo), ]
+  k <- match(d$hhid, as.character(r1$ResNo))
+  d$age <- r1$Age[k]
+  d$education_years_ <- r1$Educ[k]
+  d$farmland <- r1$TFArea[k]
+  d$hh_size <- r1$HHSize[k]
   
-  ## about the data (TRUE/FALSE)
-  d$on_farm <- NA
-    d$is_survey <- NA
-    d$irrigated <-
-    
-    ## crop rotation. If available, add all crops, including "d$crop". Use an underscore for intercrops 
-    d$crop_rotation <- "crop1;crop2;crop3_crop4"
+  d$country <- "Vietnam"
+  d$crop <- "rice"
+  d$yield_part <- "grain"
+  d$on_farm <- TRUE
+  d$is_survey <- TRUE
+  d$trial_id <- paste(d$hhid, d$field_id, d$season, sep="_")
   
-  ## each site must have corresponding longitude and latitude
-  ## if the raw data do not provide them you can estimate them from the location/adm data 
-  ## see carobiner::geocode
-  d$longitude <- 
-    d$latitude <- 
-    # are the coordinates from the source (data/publication) or estimated by you?	
-    d$geo_from_source <- TRUE/FALSE
-  
-  
-  ## time can be year ("2023", four characters), year-month ("2023-07", 7 characters) or date ("2023-07-21", 10 characters).
-  ## if dates come as character values, you can use as.character(as.Date()) for dates to assure the correct format.
-  d$planting_date <- as.character(as.Date(   ))
-  d$harvest_date  <- as.character(as.Date(    ))
-  
-  ### Fertilizers 
-  ## note that we use P and K, not P2O5 and K2O
-  ## P <- P2O5 / 2.29
-  ## K <- K2O / 1.2051
-  d$P_fertilizer <- 
-    d$K_fertilizer <-
-    d$N_fertilizer <- 
-    d$S_fertilizer <- 
-    d$lime <- 
-    ## normalize names 
-    d$fertlizer_type <- 
-    
-    ## for legumes   
-    d$inoculated <- TRUE or FALSE
-  d$inoculant <- "name of inoculant"
-  
-  ### in general, add comments to your script if computations are
-  ### based on information gleaned from metadata, a publication, 
-  ### or when they are not immediately obvious for other reasons
-  
-  ### Yield
-  
-  yield <- r$yield_tonha * 1000
-  #what plant part does yield refer to?
-  d$yield_part <- "tubers"
-  d$yield_moisture <- r$moisture * 100
-  
-  #NOTE: yield is the _fresh weight_ production (kg/ha) of the "yield_part 
-  # Also record fresh and/or dry weight production of other organs (or "residue" or "total")
-  # if the data allow for that 
-  
-  d$fwy_storage <- r$yield_tonha * 1000
-  d$dmy_storage <- (1-r$moisture) * r$yield_tonha * 1000
-  d$dmy_totat <- r$dry_biomass
-  
-  # all scripts must end like this
   carobiner::write_files(path, meta, d)
 }
-
-## now test your function in a _clean_ R environment (no packages loaded, no other objects available)
-# carob_script(path=_____)
+    
