@@ -28,7 +28,7 @@ Measure awareness and adoption of 3R3G in the Mekong Delta Region and assess dif
                                   treatment_vars = NA,
                                   response_vars = NA, 
                                   carob_completion = 50,
-                                  carob_effort = 1,
+                                  carob_effort = 2.5,
                                   carob_contributor = "Huynh Thi Truc Linh",
                                   carob_date = "2026-11-07",
                                   notes = NA, # notes for the end-user
